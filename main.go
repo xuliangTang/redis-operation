@@ -9,7 +9,8 @@ import (
 func main()  {
 	getName := redis.NewStringOperation().Set("name","txl",
 		redis.WithExpire(time.Second*30),
-		redis.WithNx(),
+		// redis.WithNX(),
+		redis.WithXX(),
 	).Unwrap()
 	fmt.Println(getName)
 

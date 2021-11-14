@@ -21,6 +21,12 @@ func(this *StringOperation) Set(key string, val string, attrs ...*OperationAttr)
 		return NewInterfaceResult(Redis().SetNX(this.ctx, key, val, exp).Result())
 	}
 
+	// nx 和 xx 同时只能出现一个
+	xx := OperationAttrs(attrs).Find(ATTR_XX).UnwrapOr(nil)
+	if xx != nil {
+		return NewInterfaceResult(Redis().SetXX(this.ctx, key, val, exp).Result())
+	}
+
 	return NewInterfaceResult(Redis().Set(this.ctx, key, val, exp).Result())
 }
 
