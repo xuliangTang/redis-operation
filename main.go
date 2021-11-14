@@ -1,13 +1,9 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"goRedis/db"
-	"goRedis/models/newsModel"
-	"goRedis/redis"
-	"log"
-	"time"
+	"github.com/gin-gonic/gin"
+	"goRedis/cachePool"
+	"goRedis/dbGetter"
 )
 
 func main()  {
@@ -23,18 +19,17 @@ func main()  {
 	//	fmt.Println(getValues.Next())
 	//}
 
-	newsId := 3
-	newsCache := redis.NewStringCache(redis.NewStringOperation(), time.Second*30)
-	newsCache.DBGetter = func() string {
-		fmt.Println("from db")
-		news := newsModel.New()
-		db.Db.Where("id=?", newsId).First(&news)
-		bs,err := json.Marshal(news)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return string(bs)
-	}
-	fmt.Println(newsCache.GetCache("test"))
+	r := gin.Default()
+	r.GET("/news/:id", func(context *gin.Context) {
+		newsId := context.Param("id")
+		newsCache := cachePool.NewsCache()
+		defer cachePool.NewsCacheRelease(newsCache)
+		newsCache.DBGetter = dbGetter.NewsDbGetter(newsId)
+		context.Header("Content-Type", "application/json")
+		context.String(200, newsCache.GetCache("news"+newsId).(string))
+	})
+	r.Run(":8080")
+
+
 
 }
