@@ -13,7 +13,7 @@ func NewStringOperation() *StringOperation {
 	return &StringOperation{ctx: context.Background()}
 }
 
-func(this *StringOperation) Set(key string, val string, attrs ...*OperationAttr) *InterfaceResult {
+func(this *StringOperation) Set(key string, val interface{}, attrs ...*OperationAttr) *InterfaceResult {
 	exp := OperationAttrs(attrs).Find(ATTR_EXPIRE).UnwrapOr(time.Second*0).(time.Duration)
 	nx := OperationAttrs(attrs).Find(ATTR_NX).UnwrapOr(nil)
 

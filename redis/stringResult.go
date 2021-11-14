@@ -23,3 +23,9 @@ func(this *StringResult) UnwrapOr(val string) string {
 	return this.Result
 }
 
+func(this *StringResult) UnwrapOrElse(f func() string) string {
+	if this.Err != nil {
+		return f()
+	}
+	return this.Result
+}
