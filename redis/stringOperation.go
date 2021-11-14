@@ -13,12 +13,15 @@ func NewStringOperation() *StringOperation {
 	return &StringOperation{ctx: context.Background()}
 }
 
-func(this *StringOperation) Set(key string, val string, attrs ...*OperationAttr) *StringResult {
-	exp := OperationAttrs(attrs).Find(ATTR_EXPIRE)
-	if exp == nil {
-		exp = time.Second*0
+func(this *StringOperation) Set(key string, val string, attrs ...*OperationAttr) *InterfaceResult {
+	exp := OperationAttrs(attrs).Find(ATTR_EXPIRE).UnwrapOr(time.Second*0).(time.Duration)
+	nx := OperationAttrs(attrs).Find(ATTR_NX).UnwrapOr(nil)
+
+	if nx != nil {
+		return NewInterfaceResult(Redis().SetNX(this.ctx, key, val, exp).Result())
 	}
-	return NewStringResult(Redis().Set(this.ctx, key, val, exp.(time.Duration)).Result())
+
+	return NewInterfaceResult(Redis().Set(this.ctx, key, val, exp).Result())
 }
 
 func(this *StringOperation) Get(key string) *StringResult {
