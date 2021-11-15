@@ -10,7 +10,8 @@ var NewsCachePool *sync.Pool
 
 func init()  {
 	NewsCachePool = &sync.Pool{New: func() interface{} {
-		return redis.NewStringCache(redis.NewStringOperation(), time.Second*30, redis.SERILIZER_GOB)
+		return redis.NewStringCache(redis.NewStringOperation(), time.Second*30,
+			redis.SERILIZER_GOB, redis.NewCrossPolicy("^news\\d{1,6}$", time.Second*10))
 	}}
 }
 

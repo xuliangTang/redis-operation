@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"goRedis/cachePool"
+	"goRedis/common"
 	"goRedis/dbGetter"
 	"goRedis/models/newsModel"
 )
@@ -21,6 +22,7 @@ func main()  {
 	//}
 
 	r := gin.Default()
+	r.Use(common.ErrorHandler())
 	r.GET("/news/:id", func(context *gin.Context) {
 		// 获取参数
 		newsId := context.Param("id")

@@ -18,10 +18,12 @@ type StringCache struct {
 	Expire time.Duration
 	DBGetter DBGetterFunc
 	Serilizer string
+	policy CachePolicy
 }
 
-func NewStringCache(operation *StringOperation, expire time.Duration, serilizer string) *StringCache {
-	return &StringCache{Operation: operation, Expire: expire, Serilizer: serilizer}
+func NewStringCache(operation *StringOperation, expire time.Duration, serilizer string, policy CachePolicy) *StringCache {
+	policy.SetOperation(operation)
+	return &StringCache{Operation: operation, Expire: expire, Serilizer: serilizer, policy:policy}
 }
 
 
@@ -32,9 +34,16 @@ func(this *StringCache) SetCache(key string, value interface{}) {
 
 // 读取缓存
 func(this *StringCache) GetCache(key string) (ret interface{}) {
-	obj := this.DBGetter()
+	if this.policy != nil {
+		this.policy.Before(key)
+	}
+
 	if this.Serilizer == SERILIZER_JSON {
 		f := func() string {
+			obj := this.DBGetter()
+			if obj == nil {
+				return ""
+			}
 			bs,err := json.Marshal(obj)
 			if err != nil {
 				return ""
@@ -42,10 +51,14 @@ func(this *StringCache) GetCache(key string) (ret interface{}) {
 			return string(bs)
 		}
 		ret = this.Operation.Get(key).UnwrapOrElse(f)
-		this.SetCache(key, ret)
+		// this.SetCache(key, ret)
 
 	} else if this.Serilizer == SERILIZER_GOB {
 		f := func() string {
+			obj := this.DBGetter()
+			if obj == nil {
+				return ""
+			}
 			var buf = &bytes.Buffer{}
 			enc := gob.NewEncoder(buf)
 			if err := enc.Encode(obj); err != nil {
@@ -54,6 +67,12 @@ func(this *StringCache) GetCache(key string) (ret interface{}) {
 			return buf.String()
 		}
 		ret = this.Operation.Get(key).UnwrapOrElse(f)
+		// this.SetCache(key, ret)
+	}
+
+	if ret.(string) == "" && this.policy != nil {
+		this.policy.IfNil(key, "")
+	} else {
 		this.SetCache(key, ret)
 	}
 

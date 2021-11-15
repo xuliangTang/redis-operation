@@ -3,7 +3,7 @@ module goRedis
 go 1.14
 
 require (
-	github.com/gin-gonic/gin v1.7.4 // indirect
+	github.com/gin-gonic/gin v1.7.4
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/json-iterator/go v1.1.12 // indirect
